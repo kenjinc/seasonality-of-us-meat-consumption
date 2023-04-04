@@ -1,7 +1,6 @@
 ---
-title: "Analysis"
+title: "Data Cleaning and Analysis"
 output: github_document
-date: "2023-04-04"
 ---
 
 ```{r setup, include=FALSE}
@@ -14,9 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## Loading Data into the Environment
+## Data Loading
 
 ```{r}
-read_csv("data/st_proc_mn_wtfix_abb.csv.gz")
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
+  head(6)
 ```
+
+## 
 
