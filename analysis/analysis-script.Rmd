@@ -11,14 +11,33 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+library(usmap)
+library(maps)
+library(socviz)
 ```
 
 ## Data Loading
+
+### Retail Data
 
 ```{r}
 read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
   select(-...1) %>%
   head(5)
+```
+
+### Agricultural Subsidy Data
+
+```{r}
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
+  head(5)
+```
+
+Shapefile Data
+
+```{r}
+map_data("county") %>%
+  head(6)
 ```
 
 ## Total Volume (kg) of Processed Meat Sales by State
@@ -76,3 +95,52 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
   ylab("") +
   theme(panel.grid.minor=element_blank())
 ```
+
+## State-Level Agricultural Subsidy Payments (using `usmap` package)
+
+```{r}
+plot_usmap(regions="counties")
+```
+## State-Level Agricultural Subsidy Payments (using `maps` package)
+
+```{r}
+us_counties <- map_data("county")
+```
+
+```{r}
+
+```
+
+
+```{r}
+ggplot(us_counties,aes(x=long,y=lat,group=group,fill=subregion)) + 
+  geom_polygon(color="gray90",linewidth=0.1) +
+  coord_map(projection="albers",lat0=39,lat1=45) +
+  guides(fill="none")+
+  theme(axis.line=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title=element_blank(),
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid=element_blank())
+```
+Need to prep data for left_join
+
+left_join(x,y,by=join_by(colname1==colname2))
+
+```{r}
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") 
+```
+
+
+```{r}
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") 
+
+```
+
+  mutate(title=gsub("\\.County*","",county)))
+  
+county_map %>% 
+  ggplot(aes(x=long,y=lat)) + 
+  geom_polygon()

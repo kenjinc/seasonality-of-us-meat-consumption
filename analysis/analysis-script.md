@@ -16,7 +16,25 @@ library(tidyverse)
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
+``` r
+library(usmap)
+library(maps)
+```
+
+    ## 
+    ## Attaching package: 'maps'
+    ## 
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     map
+
+``` r
+library(socviz)
+```
+
 ## Data Loading
+
+### Retail Data
 
 ``` r
 read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
@@ -45,6 +63,46 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
     ## # … with abbreviated variable names ¹​conv_factor_to_units_kg, ²​unit_price_kg,
     ## #   ³​concatenated, ⁴​units_kg, ⁵​region_dec2019dollars
 
+### Agricultural Subsidy Data
+
+``` r
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
+  head(5)
+```
+
+    ## Rows: 2305 Columns: 5
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (5): county, total_subsidies_1995_2021, perc_state_total, state_abb, state
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+    ## # A tibble: 5 × 5
+    ##   county                total_subsidies_1995_2021 perc_state_total state…¹ state
+    ##   <chr>                 <chr>                     <chr>            <chr>   <chr>
+    ## 1 Gaines County, Texas  $1,476,802,523            3.30%            TX      Texas
+    ## 2 Hale County, Texas    $1,159,637,316            2.60%            TX      Texas
+    ## 3 Dawson County, Texas  $1,110,737,641            2.50%            TX      Texas
+    ## 4 Terry County, Texas   $987,748,081              2.20%            TX      Texas
+    ## 5 Wharton County, Texas $954,867,910              2.10%            TX      Texas
+    ## # … with abbreviated variable name ¹​state_abb
+
+Shapefile Data
+
+``` r
+map_data("county") %>%
+  head(6)
+```
+
+    ##        long      lat group order  region subregion
+    ## 1 -86.50517 32.34920     1     1 alabama   autauga
+    ## 2 -86.53382 32.35493     1     2 alabama   autauga
+    ## 3 -86.54527 32.36639     1     3 alabama   autauga
+    ## 4 -86.55673 32.37785     1     4 alabama   autauga
+    ## 5 -86.57966 32.38357     1     5 alabama   autauga
+    ## 6 -86.59111 32.37785     1     6 alabama   autauga
+
 ## Total Volume (kg) of Processed Meat Sales by State
 
 ``` r
@@ -69,7 +127,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
     ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
     ## • `` -> `...1`
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ## Mean Volume (kg) of Processed Meat Sales by State
 
@@ -95,7 +153,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
     ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
     ## • `` -> `...1`
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## Total Volume (kg) of Processed Meat Sales by Month
 
@@ -122,7 +180,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
     ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
     ## • `` -> `...1`
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
@@ -147,4 +205,66 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
     ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
     ## • `` -> `...1`
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+## State-Level Agricultural Subsidy Payments (using `usmap` package)
+
+``` r
+plot_usmap(regions="counties")
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-9-1.png)<!-- --> \##
+State-Level Agricultural Subsidy Payments (using `maps` package)
+
+``` r
+us_counties <- map_data("county")
+```
+
+``` r
+ggplot(us_counties,aes(x=long,y=lat,group=group,fill=subregion)) + 
+  geom_polygon(color="gray90",linewidth=0.1) +
+  coord_map(projection="albers",lat0=39,lat1=45) +
+  guides(fill="none")+
+  theme(axis.line=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title=element_blank(),
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+Need to prep data for left_join
+
+left_join(x,y,by=join_by(colname1==colname2))
+
+``` r
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") 
+```
+
+    ## Rows: 2305 Columns: 5
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (5): county, total_subsidies_1995_2021, perc_state_total, state_abb, state
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+    ## # A tibble: 2,305 × 5
+    ##    county                total_subsidies_1995_2021 perc_state_to…¹ state…² state
+    ##    <chr>                 <chr>                     <chr>           <chr>   <chr>
+    ##  1 Gaines County, Texas  $1,476,802,523            3.30%           TX      Texas
+    ##  2 Hale County, Texas    $1,159,637,316            2.60%           TX      Texas
+    ##  3 Dawson County, Texas  $1,110,737,641            2.50%           TX      Texas
+    ##  4 Terry County, Texas   $987,748,081              2.20%           TX      Texas
+    ##  5 Wharton County, Texas $954,867,910              2.10%           TX      Texas
+    ##  6 Lamb County, Texas    $928,633,397              2.10%           TX      Texas
+    ##  7 Floyd County, Texas   $877,686,118              2.00%           TX      Texas
+    ##  8 Lubbock County, Texas $874,170,512              2.00%           TX      Texas
+    ##  9 Lynn County, Texas    $830,835,732              1.90%           TX      Texas
+    ## 10 Hockley County, Texas $830,765,051              1.90%           TX      Texas
+    ## # … with 2,295 more rows, and abbreviated variable names ¹​perc_state_total,
+    ## #   ²​state_abb
+
+county_map %\>% ggplot(aes(x=long,y=lat)) + geom_polygon()
