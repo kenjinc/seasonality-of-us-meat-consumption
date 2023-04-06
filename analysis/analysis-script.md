@@ -60,7 +60,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/coun
   head(5)
 ```
 
-    ## Rows: 2305 Columns: 5
+    ## Rows: 3055 Columns: 5
     ## ── Column specification ────────────────────────────────────────────────────────
     ## Delimiter: ","
     ## chr (3): county, state_abb, state
@@ -234,7 +234,7 @@ county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consum
   mutate(perc_natl_total=perc_state_total/sum(perc_state_total))
 ```
 
-    ## Rows: 2305 Columns: 5
+    ## Rows: 3055 Columns: 5
     ## ── Column specification ────────────────────────────────────────────────────────
     ## Delimiter: ","
     ## chr (3): county, state_abb, state
@@ -251,12 +251,12 @@ county_data %>%
     ## # A tibble: 6 × 4
     ##   id             total_subsidies_1995_2021 perc_state_total perc_natl_total
     ##   <chr>                              <dbl>            <dbl>           <dbl>
-    ## 1 texas, gaines                 1476802523            0.033        0.00108 
-    ## 2 texas, hale                   1159637316            0.026        0.000854
-    ## 3 texas, dawson                 1110737641            0.025        0.000821
-    ## 4 texas, terry                   987748081            0.022        0.000722
-    ## 5 texas, wharton                 954867910            0.021        0.000689
-    ## 6 texas, lamb                    928633397            0.021        0.000689
+    ## 1 texas, gaines                 1476802523            0.033        0.000696
+    ## 2 texas, hale                   1159637316            0.026        0.000549
+    ## 3 texas, dawson                 1110737641            0.025        0.000528
+    ## 4 texas, terry                   987748081            0.022        0.000464
+    ## 5 texas, wharton                 954867910            0.021        0.000443
+    ## 6 texas, lamb                    928633397            0.021        0.000443
 
 ``` r
 county_map <- map_data("county") %>%
@@ -287,19 +287,19 @@ county_full %>%
     ## 5 -86.57966 32.38357     1     5 alabama, autauga alabama   autauga
     ## 6 -86.59111 32.37785     1     6 alabama, autauga alabama   autauga
     ##   total_subsidies_1995_2021 perc_state_total perc_natl_total
-    ## 1                  61027557            0.012    0.0003939593
-    ## 2                  61027557            0.012    0.0003939593
-    ## 3                  61027557            0.012    0.0003939593
-    ## 4                  61027557            0.012    0.0003939593
-    ## 5                  61027557            0.012    0.0003939593
-    ## 6                  61027557            0.012    0.0003939593
+    ## 1                  61027557            0.012    0.0002532554
+    ## 2                  61027557            0.012    0.0002532554
+    ## 3                  61027557            0.012    0.0002532554
+    ## 4                  61027557            0.012    0.0002532554
+    ## 5                  61027557            0.012    0.0002532554
+    ## 6                  61027557            0.012    0.0002532554
 
 ``` r
 ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
   scale_fill_scico(palette="lajolla",na.value="white") +
-  labs(fill="Total Agricultural SubsidiesGiven, 1995-2021") +
+  labs(fill="Total Agricultural Subsidies Given, 1995-2021") +
   xlab("") + 
   ylab("") +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
@@ -311,11 +311,13 @@ ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group))
 ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
-  scale_fill_scico(palette="lajolla",na.value="white") +
+  scale_fill_distiller(palette="OrRdBr",na.value="white") +
   labs(fill="Proportion of Agricultural Subsidies Given, 1995-2021") +
   xlab("") + 
   ylab("") +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
+
+    ## Warning in pal_name(palette, type): Unknown palette OrRdBr
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
