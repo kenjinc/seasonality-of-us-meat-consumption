@@ -73,19 +73,20 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/coun
     ## Rows: 2305 Columns: 5
     ## ── Column specification ────────────────────────────────────────────────────────
     ## Delimiter: ","
-    ## chr (5): county, total_subsidies_1995_2021, perc_state_total, state_abb, state
+    ## chr (3): county, state_abb, state
+    ## dbl (2): total_subsidies_1995_2021, perc_state_total
     ## 
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
     ## # A tibble: 5 × 5
     ##   county                total_subsidies_1995_2021 perc_state_total state…¹ state
-    ##   <chr>                 <chr>                     <chr>            <chr>   <chr>
-    ## 1 Gaines County, Texas  $1,476,802,523            3.30%            TX      Texas
-    ## 2 Hale County, Texas    $1,159,637,316            2.60%            TX      Texas
-    ## 3 Dawson County, Texas  $1,110,737,641            2.50%            TX      Texas
-    ## 4 Terry County, Texas   $987,748,081              2.20%            TX      Texas
-    ## 5 Wharton County, Texas $954,867,910              2.10%            TX      Texas
+    ##   <chr>                                     <dbl>            <dbl> <chr>   <chr>
+    ## 1 Gaines County, Texas                 1476802523            0.033 TX      Texas
+    ## 2 Hale County, Texas                   1159637316            0.026 TX      Texas
+    ## 3 Dawson County, Texas                 1110737641            0.025 TX      Texas
+    ## 4 Terry County, Texas                   987748081            0.022 TX      Texas
+    ## 5 Wharton County, Texas                 954867910            0.021 TX      Texas
     ## # … with abbreviated variable name ¹​state_abb
 
 Shapefile Data
@@ -246,25 +247,58 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/coun
     ## Rows: 2305 Columns: 5
     ## ── Column specification ────────────────────────────────────────────────────────
     ## Delimiter: ","
-    ## chr (5): county, total_subsidies_1995_2021, perc_state_total, state_abb, state
+    ## chr (3): county, state_abb, state
+    ## dbl (2): total_subsidies_1995_2021, perc_state_total
     ## 
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
     ## # A tibble: 2,305 × 5
     ##    county                total_subsidies_1995_2021 perc_state_to…¹ state…² state
-    ##    <chr>                 <chr>                     <chr>           <chr>   <chr>
-    ##  1 Gaines County, Texas  $1,476,802,523            3.30%           TX      Texas
-    ##  2 Hale County, Texas    $1,159,637,316            2.60%           TX      Texas
-    ##  3 Dawson County, Texas  $1,110,737,641            2.50%           TX      Texas
-    ##  4 Terry County, Texas   $987,748,081              2.20%           TX      Texas
-    ##  5 Wharton County, Texas $954,867,910              2.10%           TX      Texas
-    ##  6 Lamb County, Texas    $928,633,397              2.10%           TX      Texas
-    ##  7 Floyd County, Texas   $877,686,118              2.00%           TX      Texas
-    ##  8 Lubbock County, Texas $874,170,512              2.00%           TX      Texas
-    ##  9 Lynn County, Texas    $830,835,732              1.90%           TX      Texas
-    ## 10 Hockley County, Texas $830,765,051              1.90%           TX      Texas
+    ##    <chr>                                     <dbl>           <dbl> <chr>   <chr>
+    ##  1 Gaines County, Texas                 1476802523           0.033 TX      Texas
+    ##  2 Hale County, Texas                   1159637316           0.026 TX      Texas
+    ##  3 Dawson County, Texas                 1110737641           0.025 TX      Texas
+    ##  4 Terry County, Texas                   987748081           0.022 TX      Texas
+    ##  5 Wharton County, Texas                 954867910           0.021 TX      Texas
+    ##  6 Lamb County, Texas                    928633397           0.021 TX      Texas
+    ##  7 Floyd County, Texas                   877686118           0.02  TX      Texas
+    ##  8 Lubbock County, Texas                 874170512           0.02  TX      Texas
+    ##  9 Lynn County, Texas                    830835732           0.019 TX      Texas
+    ## 10 Hockley County, Texas                 830765051           0.019 TX      Texas
     ## # … with 2,295 more rows, and abbreviated variable names ¹​perc_state_total,
     ## #   ²​state_abb
+
+``` r
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
+  mutate(county_no_state=gsub("(.*),.*","\\1",county)) %>%
+  mutate(county_abb=str_remove_all(county_no_state, "County"))
+```
+
+    ## Rows: 2305 Columns: 5
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (3): county, state_abb, state
+    ## dbl (2): total_subsidies_1995_2021, perc_state_total
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+    ## # A tibble: 2,305 × 7
+    ##    county                total_subsidies…¹ perc_…² state…³ state count…⁴ count…⁵
+    ##    <chr>                             <dbl>   <dbl> <chr>   <chr> <chr>   <chr>  
+    ##  1 Gaines County, Texas         1476802523   0.033 TX      Texas Gaines… "Gaine…
+    ##  2 Hale County, Texas           1159637316   0.026 TX      Texas Hale C… "Hale "
+    ##  3 Dawson County, Texas         1110737641   0.025 TX      Texas Dawson… "Dawso…
+    ##  4 Terry County, Texas           987748081   0.022 TX      Texas Terry … "Terry…
+    ##  5 Wharton County, Texas         954867910   0.021 TX      Texas Wharto… "Whart…
+    ##  6 Lamb County, Texas            928633397   0.021 TX      Texas Lamb C… "Lamb "
+    ##  7 Floyd County, Texas           877686118   0.02  TX      Texas Floyd … "Floyd…
+    ##  8 Lubbock County, Texas         874170512   0.02  TX      Texas Lubboc… "Lubbo…
+    ##  9 Lynn County, Texas            830835732   0.019 TX      Texas Lynn C… "Lynn "
+    ## 10 Hockley County, Texas         830765051   0.019 TX      Texas Hockle… "Hockl…
+    ## # … with 2,295 more rows, and abbreviated variable names
+    ## #   ¹​total_subsidies_1995_2021, ²​perc_state_total, ³​state_abb,
+    ## #   ⁴​county_no_state, ⁵​county_abb
 
 county_map %\>% ggplot(aes(x=long,y=lat)) + geom_polygon()
