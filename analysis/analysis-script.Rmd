@@ -136,11 +136,11 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/coun
 
 ```{r}
 read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
-  mutate(county_no_state=gsub("(.*),.*","\\1",county)) %>%
-  mutate(county_abb=str_remove_all(county_no_state, "County"))
+  mutate(county_no_state=gsub("(.*),.*","\\1",county)) 
 ```
 
-
+%>%
+  mutate(county_abb=str_remove_all(county_no_state, "County"))
   
 county_map %>% 
   ggplot(aes(x=long,y=lat)) + 
