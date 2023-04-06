@@ -125,13 +125,6 @@ ggplot(us_counties,aes(x=long,y=lat,group=group,fill=subregion)) +
         panel.border=element_blank(),
         panel.grid=element_blank())
 ```
-Need to prep data for left_join
-
-left_join(x,y,by=join_by(colname1==colname2))
-
-```{r}
-read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") 
-```
 
 
 ```{r}
@@ -140,7 +133,8 @@ county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consum
   mutate(county_abb=str_remove_all(county_no_state, " County")) %>%
   mutate(state=tolower(state),county_abb=tolower(county_abb)) %>%
   unite(id,c("state","county_abb"),sep=", ",remove=FALSE) %>%
-  select(id,total_subsidies_1995_2021,perc_state_total)
+  select(id,total_subsidies_1995_2021,perc_state_total) %>%
+  mutate(perc_natl_total=perc_state_total/sum(perc_state_total))
 county_data %>%
   head(6)
 ```
@@ -164,18 +158,18 @@ ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group))
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
   scale_fill_scico(palette="lajolla",na.value="white") +
-  labs(fill="Agricultural Subsidies\nGiven, 1995-2021") +
+  labs(fill="Total Agricultural SubsidiesGiven, 1995-2021") +
   xlab("") + 
   ylab("") +
-  theme(panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
-geom_polygon(color="gray90",linewidth=0.1) +
-  coord_map(projection="albers",lat0=39,lat1=45) +
-  guides(fill="none")+
-  theme(axis.line=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks=element_blank(),
-        axis.title=element_blank(),
-        panel.background=element_blank(),
-        panel.border=element_blank(),
-        panel.grid=element_blank())
+```{r}
+ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_scico(palette="lajolla",na.value="white") +
+  labs(fill="Proportion of Agricultural Subsidies Given, 1995-2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```

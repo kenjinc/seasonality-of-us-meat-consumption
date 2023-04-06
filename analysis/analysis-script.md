@@ -223,38 +223,6 @@ ggplot(us_counties,aes(x=long,y=lat,group=group,fill=subregion)) +
 ```
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-Need to prep data for left_join
-
-left_join(x,y,by=join_by(colname1==colname2))
-
-``` r
-read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") 
-```
-
-    ## Rows: 2305 Columns: 5
-    ## ── Column specification ────────────────────────────────────────────────────────
-    ## Delimiter: ","
-    ## chr (3): county, state_abb, state
-    ## dbl (2): total_subsidies_1995_2021, perc_state_total
-    ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-
-    ## # A tibble: 2,305 × 5
-    ##    county                total_subsidies_1995_2021 perc_state_to…¹ state…² state
-    ##    <chr>                                     <dbl>           <dbl> <chr>   <chr>
-    ##  1 Gaines County, Texas                 1476802523           0.033 TX      Texas
-    ##  2 Hale County, Texas                   1159637316           0.026 TX      Texas
-    ##  3 Dawson County, Texas                 1110737641           0.025 TX      Texas
-    ##  4 Terry County, Texas                   987748081           0.022 TX      Texas
-    ##  5 Wharton County, Texas                 954867910           0.021 TX      Texas
-    ##  6 Lamb County, Texas                    928633397           0.021 TX      Texas
-    ##  7 Floyd County, Texas                   877686118           0.02  TX      Texas
-    ##  8 Lubbock County, Texas                 874170512           0.02  TX      Texas
-    ##  9 Lynn County, Texas                    830835732           0.019 TX      Texas
-    ## 10 Hockley County, Texas                 830765051           0.019 TX      Texas
-    ## # … with 2,295 more rows, and abbreviated variable names ¹​perc_state_total,
-    ## #   ²​state_abb
 
 ``` r
 county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
@@ -262,7 +230,8 @@ county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consum
   mutate(county_abb=str_remove_all(county_no_state, " County")) %>%
   mutate(state=tolower(state),county_abb=tolower(county_abb)) %>%
   unite(id,c("state","county_abb"),sep=", ",remove=FALSE) %>%
-  select(id,total_subsidies_1995_2021,perc_state_total)
+  select(id,total_subsidies_1995_2021,perc_state_total) %>%
+  mutate(perc_natl_total=perc_state_total/sum(perc_state_total))
 ```
 
     ## Rows: 2305 Columns: 5
@@ -279,15 +248,15 @@ county_data %>%
   head(6)
 ```
 
-    ## # A tibble: 6 × 3
-    ##   id             total_subsidies_1995_2021 perc_state_total
-    ##   <chr>                              <dbl>            <dbl>
-    ## 1 texas, gaines                 1476802523            0.033
-    ## 2 texas, hale                   1159637316            0.026
-    ## 3 texas, dawson                 1110737641            0.025
-    ## 4 texas, terry                   987748081            0.022
-    ## 5 texas, wharton                 954867910            0.021
-    ## 6 texas, lamb                    928633397            0.021
+    ## # A tibble: 6 × 4
+    ##   id             total_subsidies_1995_2021 perc_state_total perc_natl_total
+    ##   <chr>                              <dbl>            <dbl>           <dbl>
+    ## 1 texas, gaines                 1476802523            0.033        0.00108 
+    ## 2 texas, hale                   1159637316            0.026        0.000854
+    ## 3 texas, dawson                 1110737641            0.025        0.000821
+    ## 4 texas, terry                   987748081            0.022        0.000722
+    ## 5 texas, wharton                 954867910            0.021        0.000689
+    ## 6 texas, lamb                    928633397            0.021        0.000689
 
 ``` r
 county_map <- map_data("county") %>%
@@ -317,29 +286,36 @@ county_full %>%
     ## 4 -86.55673 32.37785     1     4 alabama, autauga alabama   autauga
     ## 5 -86.57966 32.38357     1     5 alabama, autauga alabama   autauga
     ## 6 -86.59111 32.37785     1     6 alabama, autauga alabama   autauga
-    ##   total_subsidies_1995_2021 perc_state_total
-    ## 1                  61027557            0.012
-    ## 2                  61027557            0.012
-    ## 3                  61027557            0.012
-    ## 4                  61027557            0.012
-    ## 5                  61027557            0.012
-    ## 6                  61027557            0.012
+    ##   total_subsidies_1995_2021 perc_state_total perc_natl_total
+    ## 1                  61027557            0.012    0.0003939593
+    ## 2                  61027557            0.012    0.0003939593
+    ## 3                  61027557            0.012    0.0003939593
+    ## 4                  61027557            0.012    0.0003939593
+    ## 5                  61027557            0.012    0.0003939593
+    ## 6                  61027557            0.012    0.0003939593
 
 ``` r
 ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
   scale_fill_scico(palette="lajolla",na.value="white") +
-  labs(fill="Agricultural Subsidies\nGiven, 1995-2021") +
+  labs(fill="Total Agricultural SubsidiesGiven, 1995-2021") +
   xlab("") + 
   ylab("") +
-  theme(panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+``` r
+ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_scico(palette="lajolla",na.value="white") +
+  labs(fill="Proportion of Agricultural Subsidies Given, 1995-2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
-geom_polygon(color=“gray90”,linewidth=0.1) +
-coord_map(projection=“albers”,lat0=39,lat1=45) + guides(fill=“none”)+
-theme(axis.line=element_blank(), axis.text=element_blank(),
-axis.ticks=element_blank(), axis.title=element_blank(),
-panel.background=element_blank(), panel.border=element_blank(),
-panel.grid=element_blank())
