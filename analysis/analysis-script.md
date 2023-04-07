@@ -113,7 +113,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
   group_by(state) %>%
   summarize(total_kg=sum(units_kg,na.rm=TRUE)) %>% 
   ggplot(aes(x=total_kg,y=reorder(state,total_kg))) + 
-  geom_col() + 
+  geom_col(fill="firebrick") + 
   xlab("") + 
   ylab("") +
   theme(axis.text.x=element_text(angle=90,vjust=0.5,hjust=1),panel.grid.minor=element_blank())
@@ -139,7 +139,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
   group_by(state) %>%
   summarize(mean_kg=mean(units_kg,na.rm=TRUE)) %>% 
   ggplot(aes(x=mean_kg,y=reorder(state,mean_kg))) + 
-  geom_col() + 
+  geom_col(fill="firebrick") + 
   xlab("") + 
   ylab("") +
   theme(axis.text.x=element_text(angle=90,vjust=0.5,hjust=1),panel.grid.minor=element_blank())
@@ -165,7 +165,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
   group_by(mn) %>%
   summarize(total_kg=sum(units_kg,na.rm=TRUE)) %>% 
   ggplot(aes(x=mn,y=total_kg)) + 
-  geom_col() + 
+  geom_col(fill="firebrick") + 
   scale_x_continuous(breaks=c(1:12)) +
   xlab("") + 
   ylab("") +
@@ -184,13 +184,15 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
+### Mean Sales by Month
+
 ``` r
 read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
   select(-...1) %>%
   group_by(mn) %>%
   summarize(mean_kg=mean(units_kg,na.rm=TRUE)) %>% 
   ggplot(aes(x=mn,y=mean_kg)) + 
-  geom_col() + 
+  geom_col(fill="firebrick") + 
   scale_x_continuous(breaks=c(1:12)) +
   xlab("") + 
   ylab("") +
@@ -209,11 +211,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-## State-Level Agricultural Subsidy Payments (using `usmap` package)
-
-plot_usmap(regions=“counties”)
-
-## State-Level Agricultural Subsidy Payments (using `maps` package)
+## State-Level Agricultural Subsidy Payments
 
 ``` r
 us_counties <- map_data("county")
@@ -299,6 +297,8 @@ county_full %>%
     ## 5                    0.06102756
     ## 6                    0.06102756
 
+### Total Subsidies Given across Counties, 1995-2021
+
 ``` r
 ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021_bil,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
@@ -310,7 +310,9 @@ ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021_bil,group=gro
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+### Percent of All Agricultural Subsidies Given across Counties, 1995-2021
 
 ``` r
 ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
@@ -323,24 +325,248 @@ ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+### Mean subsidies given by state
 
 ``` r
 county_data %>%
   group_by(state) %>%
   summarize(mean_subsidies_1995_2021=mean(total_subsidies_1995_2021)) %>%
   ggplot(aes(x=mean_subsidies_1995_2021,y=reorder(state,mean_subsidies_1995_2021))) + 
-  geom_col()
+  geom_col(fill="seagreen")
 ```
 
-![](analysis-script_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](analysis-script_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+Total subsidies given by state
 
 ``` r
 county_data %>%
   group_by(state) %>%
   summarize(state_subsidies_1995_2021=sum(total_subsidies_1995_2021)) %>%
   ggplot(aes(x=state_subsidies_1995_2021,y=reorder(state,state_subsidies_1995_2021))) + 
-  geom_col()
+  geom_col(fill="seagreen")
 ```
 
+![](analysis-script_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+## State-Level Processed Meat Sales (Per Capita)
+
+### Mean Annual Sales Volume (kg) by State
+
+``` r
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
+  select(-...1) %>%
+  group_by(state) %>%
+  summarize(mean_annual_kg=sum(units_kg,na.rm=TRUE)/3) %>%
+  ggplot(aes(x=reorder(state,mean_annual_kg),y=mean_annual_kg)) + 
+  geom_col(fill="firebrick") + 
+  theme(axis.text.x=element_text(angle=90,vjust=0.5,hjust=1)) 
+```
+
+    ## New names:
+    ## Rows: 2796805 Columns: 11
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (3): state, concatenated, region dbl (7): ...1, yr, mn,
+    ## conv_factor_to_units_kg, unit_price_kg, units_kg, re... date (1): date
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...1`
+
 ![](analysis-script_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
+### Total Sales Volume (kg) by State by Year
+
+``` r
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
+  select(-...1) %>%
+  group_by(state,yr) %>%
+  summarize(total_kg=sum(units_kg,na.rm=TRUE)) %>%
+  mutate(yr=as.character(yr)) %>%
+  ggplot(aes(x=total_kg,y=reorder(state,total_kg),fill=yr)) + 
+  geom_col(position="dodge") + 
+  scale_fill_brewer(palette="Reds")
+```
+
+    ## New names:
+    ## Rows: 2796805 Columns: 11
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (3): state, concatenated, region dbl (7): ...1, yr, mn,
+    ## conv_factor_to_units_kg, unit_price_kg, units_kg, re... date (1): date
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## `summarise()` has grouped output by 'state'. You can override using the
+    ## `.groups` argument.
+    ## • `` -> `...1`
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+### Total Sales Volume (kg) by Year
+
+``` r
+read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
+  select(-...1) %>%
+  group_by(yr) %>%
+  summarize(total_kg=sum(units_kg,na.rm=TRUE)) %>%
+  ggplot(aes(x=yr,y=total_kg)) + 
+  geom_col(fill="firebrick")
+```
+
+    ## New names:
+    ## Rows: 2796805 Columns: 11
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (3): state, concatenated, region dbl (7): ...1, yr, mn,
+    ## conv_factor_to_units_kg, unit_price_kg, units_kg, re... date (1): date
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...1`
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+### Mean Per Capita Sales Volume (kg) by State
+
+``` r
+state_sales_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_proc_mn_wtfix_abb.csv.gz") %>%
+  select(-...1) %>%
+  group_by(state) %>%
+  summarize(mean_annual_kg=sum(units_kg,na.rm=TRUE)/3) 
+```
+
+    ## New names:
+    ## Rows: 2796805 Columns: 11
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (3): state, concatenated, region dbl (7): ...1, yr, mn,
+    ## conv_factor_to_units_kg, unit_price_kg, units_kg, re... date (1): date
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...1`
+
+``` r
+state_sales_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 2
+    ##   state       mean_annual_kg
+    ##   <chr>                <dbl>
+    ## 1 Alabama          34868520.
+    ## 2 Arizona          37375950.
+    ## 3 California      129162414.
+    ## 4 Colorado         31450775.
+    ## 5 Connecticut      14165642.
+    ## 6 Florida         108567214.
+
+Prep for left_join with state-level population data
+
+Population data taken from
+[here](https://www.census.gov/data/tables/time-series/demo/popest/2010s-state-total.html),
+specifically the annual estimates of the resident population for the US
+
+``` r
+state_pop_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/state_pop_data.csv") %>%
+  rowwise() %>%
+  mutate(mean_pop=mean(c(pop2017,pop2018,pop2019))) %>%
+  select(state,mean_pop)
+```
+
+    ## Rows: 31 Columns: 4
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (1): state
+    ## dbl (3): pop2017, pop2018, pop2019
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+state_pop_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 2
+    ## # Rowwise: 
+    ##   state        mean_pop
+    ##   <chr>           <dbl>
+    ## 1 Alabama      4888451.
+    ## 2 Arizona      7160250.
+    ## 3 California  39444103.
+    ## 4 Colorado     5687303.
+    ## 5 Connecticut  3570035.
+    ## 6 Florida     21228556.
+
+``` r
+state_data <- left_join(state_sales_data,state_pop_data,by="state") %>%
+  rowwise() %>%
+  mutate(pc_annual_kg=mean_annual_kg/mean_pop) %>%
+  mutate(state=tolower(state))
+state_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 4
+    ## # Rowwise: 
+    ##   state       mean_annual_kg  mean_pop pc_annual_kg
+    ##   <chr>                <dbl>     <dbl>        <dbl>
+    ## 1 alabama          34868520.  4888451.         7.13
+    ## 2 arizona          37375950.  7160250.         5.22
+    ## 3 california      129162414. 39444103.         3.27
+    ## 4 colorado         31450775.  5687303.         5.53
+    ## 5 connecticut      14165642.  3570035.         3.97
+    ## 6 florida         108567214. 21228556.         5.11
+
+``` r
+ggplot(state_data,aes(y=reorder(state,pc_annual_kg),x=pc_annual_kg)) + 
+  geom_point(color="firebrick")
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+``` r
+state_map <- map_data("state") %>%
+  rename(state=region)
+state_map %>%
+  head(6)
+```
+
+    ##        long      lat group order   state subregion
+    ## 1 -87.46201 30.38968     1     1 alabama      <NA>
+    ## 2 -87.48493 30.37249     1     2 alabama      <NA>
+    ## 3 -87.52503 30.37249     1     3 alabama      <NA>
+    ## 4 -87.53076 30.33239     1     4 alabama      <NA>
+    ## 5 -87.57087 30.32665     1     5 alabama      <NA>
+    ## 6 -87.58806 30.32665     1     6 alabama      <NA>
+
+``` r
+state_full <- left_join(state_data,state_map,by="state")
+state_full %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 9
+    ## # Rowwise: 
+    ##   state   mean_annual_kg mean_pop pc_annual_kg  long   lat group order subregion
+    ##   <chr>            <dbl>    <dbl>        <dbl> <dbl> <dbl> <dbl> <int> <chr>    
+    ## 1 alabama      34868520. 4888451.         7.13 -87.5  30.4     1     1 <NA>     
+    ## 2 alabama      34868520. 4888451.         7.13 -87.5  30.4     1     2 <NA>     
+    ## 3 alabama      34868520. 4888451.         7.13 -87.5  30.4     1     3 <NA>     
+    ## 4 alabama      34868520. 4888451.         7.13 -87.5  30.3     1     4 <NA>     
+    ## 5 alabama      34868520. 4888451.         7.13 -87.6  30.3     1     5 <NA>     
+    ## 6 alabama      34868520. 4888451.         7.13 -87.6  30.3     1     6 <NA>
+
+``` r
+ggplot(state_full,aes(x=long,y=lat,fill=pc_annual_kg,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="YlOrRd",trans="reverse",na.value="white") + 
+  labs(fill="Mean Annual Per Capita Processed Meat Sales (kg), 2017-2019") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
