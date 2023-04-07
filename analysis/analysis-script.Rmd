@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
-library(scico)
+library(scales)
 ```
 
 library(usmap)
@@ -35,7 +35,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/coun
   head(5)
 ```
 
-Shapefile Data
+County Shapefile Data
 
 ```{r}
 map_data("county") %>%
@@ -111,30 +111,15 @@ plot_usmap(regions="counties")
 us_counties <- map_data("county")
 ```
 
-
-```{r}
-ggplot(us_counties,aes(x=long,y=lat,group=group,fill=subregion)) + 
-  geom_polygon(color="gray90",linewidth=0.1) +
-  coord_map(projection="albers",lat0=39,lat1=45) +
-  guides(fill="none")+
-  theme(axis.line=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks=element_blank(),
-        axis.title=element_blank(),
-        panel.background=element_blank(),
-        panel.border=element_blank(),
-        panel.grid=element_blank())
-```
-
-
 ```{r}
 county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
   mutate(county_no_state=gsub("(.*),.*","\\1",county)) %>%
-  mutate(county_abb=str_remove_all(county_no_state, " County")) %>%
+  mutate(county_abb=str_remove_all(county_no_state, " County| Parish")) %>%
   mutate(state=tolower(state),county_abb=tolower(county_abb)) %>%
   unite(id,c("state","county_abb"),sep=", ",remove=FALSE) %>%
-  select(id,total_subsidies_1995_2021,perc_state_total) %>%
-  mutate(perc_natl_total=perc_state_total/sum(perc_state_total))
+  select(id,state,county_abb,total_subsidies_1995_2021,perc_state_total) %>%
+  mutate(perc_natl_total=perc_state_total/sum(perc_state_total)) %>%
+  mutate(total_subsidies_1995_2021_bil=total_subsidies_1995_2021/1000000000)
 county_data %>%
   head(6)
 ```
@@ -154,10 +139,10 @@ county_full %>%
 ```
 
 ```{r}
-ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group)) + 
+ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021_bil,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
-  scale_fill_scico(palette="lajolla",na.value="white") +
+  scale_fill_distiller(palette="Greens",trans="reverse",na.value="white") +
   labs(fill="Total Agricultural Subsidies Given, 1995-2021") +
   xlab("") + 
   ylab("") +
@@ -167,9 +152,29 @@ ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group))
 ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
-  scale_fill_distiller(palette="OrRdBr",na.value="white") +
+  scale_fill_distiller(palette="Greens",trans="reverse",na.value="white",labels=percent) +
   labs(fill="Proportion of Agricultural Subsidies Given, 1995-2021") +
   xlab("") + 
   ylab("") +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
+
+```{r}
+county_data %>%
+  group_by(state) %>%
+  summarize(mean_subsidies_1995_2021=mean(total_subsidies_1995_2021)) %>%
+  ggplot(aes(x=mean_subsidies_1995_2021,y=reorder(state,mean_subsidies_1995_2021))) + 
+  geom_col()
+```
+
+```{r}
+county_data %>%
+  group_by(state) %>%
+  summarize(state_subsidies_1995_2021=sum(total_subsidies_1995_2021)) %>%
+  ggplot(aes(x=state_subsidies_1995_2021,y=reorder(state,state_subsidies_1995_2021))) + 
+  geom_col()
+```
+
+## State-Level Processed Meat Sales (Per Capita)
+
+

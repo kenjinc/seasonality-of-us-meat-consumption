@@ -17,8 +17,19 @@ library(tidyverse)
     ## ✖ dplyr::lag()    masks stats::lag()
 
 ``` r
-library(scico)
+library(scales)
 ```
+
+    ## 
+    ## Attaching package: 'scales'
+    ## 
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     discard
+    ## 
+    ## The following object is masked from 'package:readr':
+    ## 
+    ##     col_factor
 
 library(usmap) library(maps) library(socviz)
 
@@ -79,7 +90,7 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/coun
     ## 5 Wharton County, Texas                 954867910            0.021 TX      Texas
     ## # … with abbreviated variable name ¹​state_abb
 
-Shapefile Data
+County Shapefile Data
 
 ``` r
 map_data("county") %>%
@@ -209,29 +220,14 @@ us_counties <- map_data("county")
 ```
 
 ``` r
-ggplot(us_counties,aes(x=long,y=lat,group=group,fill=subregion)) + 
-  geom_polygon(color="gray90",linewidth=0.1) +
-  coord_map(projection="albers",lat0=39,lat1=45) +
-  guides(fill="none")+
-  theme(axis.line=element_blank(),
-        axis.text=element_blank(),
-        axis.ticks=element_blank(),
-        axis.title=element_blank(),
-        panel.background=element_blank(),
-        panel.border=element_blank(),
-        panel.grid=element_blank())
-```
-
-![](analysis-script_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-
-``` r
 county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
   mutate(county_no_state=gsub("(.*),.*","\\1",county)) %>%
-  mutate(county_abb=str_remove_all(county_no_state, " County")) %>%
+  mutate(county_abb=str_remove_all(county_no_state, " County| Parish")) %>%
   mutate(state=tolower(state),county_abb=tolower(county_abb)) %>%
   unite(id,c("state","county_abb"),sep=", ",remove=FALSE) %>%
-  select(id,total_subsidies_1995_2021,perc_state_total) %>%
-  mutate(perc_natl_total=perc_state_total/sum(perc_state_total))
+  select(id,state,county_abb,total_subsidies_1995_2021,perc_state_total) %>%
+  mutate(perc_natl_total=perc_state_total/sum(perc_state_total)) %>%
+  mutate(total_subsidies_1995_2021_bil=total_subsidies_1995_2021/1000000000)
 ```
 
     ## Rows: 3055 Columns: 5
@@ -248,15 +244,17 @@ county_data %>%
   head(6)
 ```
 
-    ## # A tibble: 6 × 4
-    ##   id             total_subsidies_1995_2021 perc_state_total perc_natl_total
-    ##   <chr>                              <dbl>            <dbl>           <dbl>
-    ## 1 texas, gaines                 1476802523            0.033        0.000696
-    ## 2 texas, hale                   1159637316            0.026        0.000549
-    ## 3 texas, dawson                 1110737641            0.025        0.000528
-    ## 4 texas, terry                   987748081            0.022        0.000464
-    ## 5 texas, wharton                 954867910            0.021        0.000443
-    ## 6 texas, lamb                    928633397            0.021        0.000443
+    ## # A tibble: 6 × 7
+    ##   id             state county_abb total_subsidies_1995…¹ perc_…² perc_…³ total…⁴
+    ##   <chr>          <chr> <chr>                       <dbl>   <dbl>   <dbl>   <dbl>
+    ## 1 texas, gaines  texas gaines                 1476802523   0.033 6.96e-4   1.48 
+    ## 2 texas, hale    texas hale                   1159637316   0.026 5.49e-4   1.16 
+    ## 3 texas, dawson  texas dawson                 1110737641   0.025 5.28e-4   1.11 
+    ## 4 texas, terry   texas terry                   987748081   0.022 4.64e-4   0.988
+    ## 5 texas, wharton texas wharton                 954867910   0.021 4.43e-4   0.955
+    ## 6 texas, lamb    texas lamb                    928633397   0.021 4.43e-4   0.929
+    ## # … with abbreviated variable names ¹​total_subsidies_1995_2021,
+    ## #   ²​perc_state_total, ³​perc_natl_total, ⁴​total_subsidies_1995_2021_bil
 
 ``` r
 county_map <- map_data("county") %>%
@@ -279,27 +277,47 @@ county_full %>%
   head(6)
 ```
 
-    ##        long      lat group order               id  region subregion
-    ## 1 -86.50517 32.34920     1     1 alabama, autauga alabama   autauga
-    ## 2 -86.53382 32.35493     1     2 alabama, autauga alabama   autauga
-    ## 3 -86.54527 32.36639     1     3 alabama, autauga alabama   autauga
-    ## 4 -86.55673 32.37785     1     4 alabama, autauga alabama   autauga
-    ## 5 -86.57966 32.38357     1     5 alabama, autauga alabama   autauga
-    ## 6 -86.59111 32.37785     1     6 alabama, autauga alabama   autauga
-    ##   total_subsidies_1995_2021 perc_state_total perc_natl_total
-    ## 1                  61027557            0.012    0.0002532554
-    ## 2                  61027557            0.012    0.0002532554
-    ## 3                  61027557            0.012    0.0002532554
-    ## 4                  61027557            0.012    0.0002532554
-    ## 5                  61027557            0.012    0.0002532554
-    ## 6                  61027557            0.012    0.0002532554
+    ##        long      lat group order               id  region subregion   state
+    ## 1 -86.50517 32.34920     1     1 alabama, autauga alabama   autauga alabama
+    ## 2 -86.53382 32.35493     1     2 alabama, autauga alabama   autauga alabama
+    ## 3 -86.54527 32.36639     1     3 alabama, autauga alabama   autauga alabama
+    ## 4 -86.55673 32.37785     1     4 alabama, autauga alabama   autauga alabama
+    ## 5 -86.57966 32.38357     1     5 alabama, autauga alabama   autauga alabama
+    ## 6 -86.59111 32.37785     1     6 alabama, autauga alabama   autauga alabama
+    ##   county_abb total_subsidies_1995_2021 perc_state_total perc_natl_total
+    ## 1    autauga                  61027557            0.012    0.0002532554
+    ## 2    autauga                  61027557            0.012    0.0002532554
+    ## 3    autauga                  61027557            0.012    0.0002532554
+    ## 4    autauga                  61027557            0.012    0.0002532554
+    ## 5    autauga                  61027557            0.012    0.0002532554
+    ## 6    autauga                  61027557            0.012    0.0002532554
+    ##   total_subsidies_1995_2021_bil
+    ## 1                    0.06102756
+    ## 2                    0.06102756
+    ## 3                    0.06102756
+    ## 4                    0.06102756
+    ## 5                    0.06102756
+    ## 6                    0.06102756
 
 ``` r
-ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group)) + 
+ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021_bil,group=group)) + 
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
-  scale_fill_scico(palette="lajolla",na.value="white") +
+  scale_fill_distiller(palette="Greens",trans="reverse",na.value="white") +
   labs(fill="Total Agricultural Subsidies Given, 1995-2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
+ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Greens",trans="reverse",na.value="white",labels=percent) +
+  labs(fill="Proportion of Agricultural Subsidies Given, 1995-2021") +
   xlab("") + 
   ylab("") +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
@@ -308,16 +326,21 @@ ggplot(county_full,aes(x=long,y=lat,fill=total_subsidies_1995_2021,group=group))
 ![](analysis-script_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 ``` r
-ggplot(county_full,aes(x=long,y=lat,fill=perc_natl_total,group=group)) + 
-  geom_polygon(color="white",linewidth=0.05) +
-  coord_map(projection="albers",lat0=39,lat1=45) + 
-  scale_fill_distiller(palette="OrRdBr",na.value="white") +
-  labs(fill="Proportion of Agricultural Subsidies Given, 1995-2021") +
-  xlab("") + 
-  ylab("") +
-  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+county_data %>%
+  group_by(state) %>%
+  summarize(mean_subsidies_1995_2021=mean(total_subsidies_1995_2021)) %>%
+  ggplot(aes(x=mean_subsidies_1995_2021,y=reorder(state,mean_subsidies_1995_2021))) + 
+  geom_col()
 ```
 
-    ## Warning in pal_name(palette, type): Unknown palette OrRdBr
-
 ![](analysis-script_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+``` r
+county_data %>%
+  group_by(state) %>%
+  summarize(state_subsidies_1995_2021=sum(total_subsidies_1995_2021)) %>%
+  ggplot(aes(x=state_subsidies_1995_2021,y=reorder(state,state_subsidies_1995_2021))) + 
+  geom_col()
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
