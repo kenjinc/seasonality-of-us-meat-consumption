@@ -570,3 +570,9 @@ ggplot(state_full,aes(x=long,y=lat,fill=pc_annual_kg,group=group)) +
 ```
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+Next steps: need to add county health and county water data. Now looking
+to pivot so that one project focuses on how county health aligns with
+state retail patterns of red and processed meat and the other looks at
+how agricultural subsidy payments align with water usage for irrigation
+(and water scarcity), both at the county level
