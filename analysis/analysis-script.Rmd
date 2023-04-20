@@ -104,6 +104,8 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
 
 ```{r}
 us_counties <- map_data("county")
+us_counties %>%
+  head(6)
 ```
 
 ```{r}
@@ -279,6 +281,30 @@ ggplot(state_full,aes(x=long,y=lat,fill=pc_annual_kg,group=group)) +
   ylab("") +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
+
+### Importing county-level water usage data
+
+```{r}
+county_water_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_water_data.csv",skip=1) %>%
+  select(STATE,COUNTY,FIPS,'IR-IrTot','IR-WGWFr','IR-WFrTo') %>%
+  rename(state=STATE,county=COUNTY,fips=FIPS,acres='IR-IrTot',groundwater='IR-WGWFr',freshwater='IR-WFrTo') %>%
+  mutate(county=str_remove_all(county," County| Parish")) %>%
+  mutate(state=tolower(state),county=tolower(county)) %>%
+  mutate(across(state,str_replace,'al','alabama')) %>%
+  mutate(across(state,str_replace,'ak','arkansas')) 
+county_water_data 
+```
+
+county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
+  mutate(county_no_state=gsub("(.*),.*","\\1",county)) %>%
+  mutate(county_abb=str_remove_all(county_no_state, " County| Parish")) %>%
+  mutate(state=tolower(state),county_abb=tolower(county_abb)) %>%
+  unite(id,c("state","county_abb"),sep=", ",remove=FALSE) %>%
+  select(id,state,county_abb,total_subsidies_1995_2021,perc_state_total) %>%
+  mutate(perc_natl_total=perc_state_total/sum(perc_state_total)) %>%
+  mutate(total_subsidies_1995_2021_bil=total_subsidies_1995_2021/1000000000)
+county_data %>%
+  head(6)
 
 Next steps: need to add county health and county water data. Now looking to pivot so that one project focuses on how county health aligns with state retail patterns of red and processed meat and the other looks at how agricultural subsidy payments align with water usage for irrigation (and water scarcity), both at the county level 
   

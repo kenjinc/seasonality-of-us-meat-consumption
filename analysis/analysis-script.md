@@ -215,7 +215,17 @@ read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/st_p
 
 ``` r
 us_counties <- map_data("county")
+us_counties %>%
+  head(6)
 ```
+
+    ##        long      lat group order  region subregion
+    ## 1 -86.50517 32.34920     1     1 alabama   autauga
+    ## 2 -86.53382 32.35493     1     2 alabama   autauga
+    ## 3 -86.54527 32.36639     1     3 alabama   autauga
+    ## 4 -86.55673 32.37785     1     4 alabama   autauga
+    ## 5 -86.57966 32.38357     1     5 alabama   autauga
+    ## 6 -86.59111 32.37785     1     6 alabama   autauga
 
 ``` r
 county_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv") %>%
@@ -570,6 +580,57 @@ ggplot(state_full,aes(x=long,y=lat,fill=pc_annual_kg,group=group)) +
 ```
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+### Importing county-level water usage data
+
+``` r
+county_water_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_water_data.csv",skip=1) %>%
+  select(STATE,COUNTY,FIPS,'IR-IrTot','IR-WGWFr','IR-WFrTo') %>%
+  rename(state=STATE,county=COUNTY,fips=FIPS,acres='IR-IrTot',groundwater='IR-WGWFr',freshwater='IR-WFrTo') %>%
+  mutate(county=str_remove_all(county," County| Parish")) %>%
+  mutate(state=tolower(state),county=tolower(county)) %>%
+  mutate(across(state,str_replace,'al','alabama')) %>%
+  mutate(across(state,str_replace,'ak','arkansas')) 
+```
+
+    ## Rows: 3223 Columns: 141
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (37): STATE, STATEFIPS, COUNTY, COUNTYFIPS, FIPS, PS-GWPop, PS-SWPop, D...
+    ## dbl (104): YEAR, TP-TotPop, PS-TOPop, PS-WGWFr, PS-WGWSa, PS-WGWTo, PS-WSWFr...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+county_water_data 
+```
+
+    ## # A tibble: 3,223 × 6
+    ##    state   county   fips  acres groundwater freshwater
+    ##    <chr>   <chr>    <chr> <dbl>       <dbl>      <dbl>
+    ##  1 alabama autauga  01001  2.26        3.36       3.52
+    ##  2 alabama baldwin  01003 20.7        47.2       58.3 
+    ##  3 alabama barbour  01005  4.53        0.57       2.96
+    ##  4 alabama bibb     01007  0.16        0.03       0.19
+    ##  5 alabama blount   01009  0.94        0.2        1.08
+    ##  6 alabama bullock  01011  1.67        0.92       2   
+    ##  7 alabama butler   01013  0.3         0.01       0.99
+    ##  8 alabama calhoun  01015  1.92        0          3.15
+    ##  9 alabama chambers 01017  0.18        0.07       0.23
+    ## 10 alabama cherokee 01019  1.87        0          2.82
+    ## # … with 3,213 more rows
+
+county_data \<-
+read_csv(“/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv”)
+%\>% mutate(county_no_state=gsub(“(.*),.*”,“\1”,county)) %\>%
+mutate(county_abb=str_remove_all(county_no_state, ” County\| Parish”))
+%\>% mutate(state=tolower(state),county_abb=tolower(county_abb)) %\>%
+unite(id,c(“state”,“county_abb”),sep=“,”,remove=FALSE) %\>%
+select(id,state,county_abb,total_subsidies_1995_2021,perc_state_total)
+%\>% mutate(perc_natl_total=perc_state_total/sum(perc_state_total)) %\>%
+mutate(total_subsidies_1995_2021_bil=total_subsidies_1995_2021/1000000000)
+county_data %\>% head(6)
 
 Next steps: need to add county health and county water data. Now looking
 to pivot so that one project focuses on how county health aligns with
