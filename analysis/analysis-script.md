@@ -588,9 +588,58 @@ county_water_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-
   select(STATE,COUNTY,FIPS,'IR-IrTot','IR-WGWFr','IR-WFrTo') %>%
   rename(state=STATE,county=COUNTY,fips=FIPS,acres='IR-IrTot',groundwater='IR-WGWFr',freshwater='IR-WFrTo') %>%
   mutate(county=str_remove_all(county," County| Parish")) %>%
-  mutate(state=tolower(state),county=tolower(county)) %>%
-  mutate(across(state,str_replace,'al','alabama')) %>%
-  mutate(across(state,str_replace,'ak','arkansas')) 
+  mutate(county=tolower(county)) %>%
+  mutate(across(state,str_replace,'AL','alabama')) %>%
+  mutate(across(state,str_replace,'AK','alaska')) %>%
+  mutate(across(state,str_replace,'AZ','arizona')) %>%
+  mutate(across(state,str_replace,'AR','arkansas')) %>%
+  mutate(across(state,str_replace,'CA','california')) %>%
+  mutate(across(state,str_replace,'CO','colorado')) %>%
+  mutate(across(state,str_replace,'CT','connecticut')) %>%
+  mutate(across(state,str_replace,'DE','delaware')) %>%
+  mutate(across(state,str_replace,'FL','florida')) %>%
+  mutate(across(state,str_replace,'GA','georgia')) %>%
+  mutate(across(state,str_replace,'HI','hawaii')) %>%
+  mutate(across(state,str_replace,'ID','idaho')) %>%
+  mutate(across(state,str_replace,'IL','illinois')) %>%
+  mutate(across(state,str_replace,'IN','indiana')) %>%
+  mutate(across(state,str_replace,'IA','iowa')) %>%
+  mutate(across(state,str_replace,'KS','kansas')) %>%
+  mutate(across(state,str_replace,'KY','kentucky')) %>%
+  mutate(across(state,str_replace,'LA','louisiana')) %>%
+  mutate(across(state,str_replace,'ME','maine')) %>%
+  mutate(across(state,str_replace,'MD','maryland')) %>%
+  mutate(across(state,str_replace,'MA','massachusetts')) %>%
+  mutate(across(state,str_replace,'MI','michigan')) %>%
+  mutate(across(state,str_replace,'MN','minnesota')) %>%
+  mutate(across(state,str_replace,'MS','mississippi')) %>%
+  mutate(across(state,str_replace,'MO','missouri')) %>%
+  mutate(across(state,str_replace,'MT','montana')) %>%
+  mutate(across(state,str_replace,'NE','nebraska')) %>%
+  mutate(across(state,str_replace,'NV','nevada')) %>%
+  mutate(across(state,str_replace,'NH','new hampshire')) %>%
+  mutate(across(state,str_replace,'NJ','new jersey')) %>%
+  mutate(across(state,str_replace,'NM','new mexico')) %>%
+  mutate(across(state,str_replace,'NY','new york')) %>%
+  mutate(across(state,str_replace,'NC','north carolina')) %>%
+  mutate(across(state,str_replace,'ND','north dakota')) %>%
+  mutate(across(state,str_replace,'OH','ohio')) %>%
+  mutate(across(state,str_replace,'OK','oklahoma')) %>%
+  mutate(across(state,str_replace,'OR','oregon')) %>%
+  mutate(across(state,str_replace,'PA','pennsylvania')) %>%
+  mutate(across(state,str_replace,'RI','rhode island')) %>%
+  mutate(across(state,str_replace,'SC','south carolina')) %>%
+  mutate(across(state,str_replace,'SD','south dakota')) %>%
+  mutate(across(state,str_replace,'TN','tennessee')) %>%
+  mutate(across(state,str_replace,'TX','texas')) %>%
+  mutate(across(state,str_replace,'UT','utah')) %>%
+  mutate(across(state,str_replace,'VT','vermont')) %>%
+  mutate(across(state,str_replace,'VA','virginia')) %>%
+  mutate(across(state,str_replace,'WA','washington')) %>%
+  mutate(across(state,str_replace,'WV','west virginia')) %>%
+  mutate(across(state,str_replace,'WI','wisconsin')) %>%
+  mutate(across(state,str_replace,'WY','wyoming')) %>%
+  unite(id,c("state","county"),sep=", ",remove=FALSE)
 ```
 
     ## Rows: 3223 Columns: 141
@@ -603,34 +652,79 @@ county_water_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
 ``` r
-county_water_data 
+county_water_data %>%
+  head(6)
 ```
 
-    ## # A tibble: 3,223 × 6
-    ##    state   county   fips  acres groundwater freshwater
-    ##    <chr>   <chr>    <chr> <dbl>       <dbl>      <dbl>
-    ##  1 alabama autauga  01001  2.26        3.36       3.52
-    ##  2 alabama baldwin  01003 20.7        47.2       58.3 
-    ##  3 alabama barbour  01005  4.53        0.57       2.96
-    ##  4 alabama bibb     01007  0.16        0.03       0.19
-    ##  5 alabama blount   01009  0.94        0.2        1.08
-    ##  6 alabama bullock  01011  1.67        0.92       2   
-    ##  7 alabama butler   01013  0.3         0.01       0.99
-    ##  8 alabama calhoun  01015  1.92        0          3.15
-    ##  9 alabama chambers 01017  0.18        0.07       0.23
-    ## 10 alabama cherokee 01019  1.87        0          2.82
-    ## # … with 3,213 more rows
+    ## # A tibble: 6 × 7
+    ##   id               state   county  fips  acres groundwater freshwater
+    ##   <chr>            <chr>   <chr>   <chr> <dbl>       <dbl>      <dbl>
+    ## 1 alabama, autauga alabama autauga 01001  2.26        3.36       3.52
+    ## 2 alabama, baldwin alabama baldwin 01003 20.7        47.2       58.3 
+    ## 3 alabama, barbour alabama barbour 01005  4.53        0.57       2.96
+    ## 4 alabama, bibb    alabama bibb    01007  0.16        0.03       0.19
+    ## 5 alabama, blount  alabama blount  01009  0.94        0.2        1.08
+    ## 6 alabama, bullock alabama bullock 01011  1.67        0.92       2
 
-county_data \<-
-read_csv(“/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_data.csv”)
-%\>% mutate(county_no_state=gsub(“(.*),.*”,“\1”,county)) %\>%
-mutate(county_abb=str_remove_all(county_no_state, ” County\| Parish”))
-%\>% mutate(state=tolower(state),county_abb=tolower(county_abb)) %\>%
-unite(id,c(“state”,“county_abb”),sep=“,”,remove=FALSE) %\>%
-select(id,state,county_abb,total_subsidies_1995_2021,perc_state_total)
-%\>% mutate(perc_natl_total=perc_state_total/sum(perc_state_total)) %\>%
-mutate(total_subsidies_1995_2021_bil=total_subsidies_1995_2021/1000000000)
-county_data %\>% head(6)
+``` r
+county_water_full <- left_join(county_map,county_water_data,by="id")
+county_water_full %>%
+  head(6)
+```
+
+    ##        long      lat group order               id  region subregion   state
+    ## 1 -86.50517 32.34920     1     1 alabama, autauga alabama   autauga alabama
+    ## 2 -86.53382 32.35493     1     2 alabama, autauga alabama   autauga alabama
+    ## 3 -86.54527 32.36639     1     3 alabama, autauga alabama   autauga alabama
+    ## 4 -86.55673 32.37785     1     4 alabama, autauga alabama   autauga alabama
+    ## 5 -86.57966 32.38357     1     5 alabama, autauga alabama   autauga alabama
+    ## 6 -86.59111 32.37785     1     6 alabama, autauga alabama   autauga alabama
+    ##    county  fips acres groundwater freshwater
+    ## 1 autauga 01001  2.26        3.36       3.52
+    ## 2 autauga 01001  2.26        3.36       3.52
+    ## 3 autauga 01001  2.26        3.36       3.52
+    ## 4 autauga 01001  2.26        3.36       3.52
+    ## 5 autauga 01001  2.26        3.36       3.52
+    ## 6 autauga 01001  2.26        3.36       3.52
+
+``` r
+ggplot(county_water_full,aes(x=long,y=lat,fill=freshwater,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Blues",trans="reverse",na.value="white") +
+  labs(fill="Total Freshwater Withdrawals (Mgal/d), 2015") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+``` r
+ggplot(county_water_full,aes(x=long,y=lat,fill=groundwater,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Blues",trans="reverse",na.value="white") +
+  labs(fill="Total Groundwater Withdrawals (Mgal/d), 2015") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+``` r
+ggplot(county_water_full,aes(x=long,y=lat,fill=acres,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Blues",trans="reverse",na.value="white") +
+  labs(fill="Total Acres Irrigated, 2015") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
 Next steps: need to add county health and county water data. Now looking
 to pivot so that one project focuses on how county health aligns with
