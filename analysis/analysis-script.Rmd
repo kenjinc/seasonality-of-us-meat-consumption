@@ -416,7 +416,29 @@ ggplot(county_health_full,aes(x=long,y=lat,fill=perc.obese.quart,group=group)) +
   geom_polygon(color="white",linewidth=0.05) +
   coord_map(projection="albers",lat0=39,lat1=45) + 
   scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
-  labs(fill="Percent of Obese Adults, 2021") +
+  labs(fill="Quartiles of Obese Adults, 2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+```{r}
+ggplot(county_health_full,aes(x=long,y=lat,fill=prev.hosp.rate,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
+  labs(fill="Preventable Hospitalization Rate, 2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+```{r}
+ggplot(county_health_full,aes(x=long,y=lat,fill=yppl.rate,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
+  labs(fill="Years of Preventable Life Lost, 2021") +
   xlab("") + 
   ylab("") +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())

@@ -726,6 +726,148 @@ ggplot(county_water_full,aes(x=long,y=lat,fill=acres,group=group)) +
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
 
+prepping health data for spatial join
+
+``` r
+county_health_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_health_data.csv") %>%
+  mutate(state=tolower(state),county=tolower(county)) %>%
+  unite(id,c("state","county"),sep=", ",remove=FALSE) 
+```
+
+    ## Rows: 3193 Columns: 34
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (3): fips, state, county
+    ## dbl (31): perc.obese, perc.obese.95ci.low, perc.obese.95ci.high, perc.obese....
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+county_health_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 35
+    ##   fips  id          state county perc.…¹ perc.…² perc.…³ perc.…⁴ prev.…⁵ prev.…⁶
+    ##   <chr> <chr>       <chr> <chr>    <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    ## 1 01000 alabama, NA alab… <NA>        36      NA      NA      NA    5466      NA
+    ## 2 01001 alabama, a… alab… autau…      33      27      39       1    6650       4
+    ## 3 01003 alabama, b… alab… baldw…      30      27      33       1    3471       1
+    ## 4 01005 alabama, b… alab… barbo…      41      34      49       3    5314       2
+    ## 5 01007 alabama, b… alab… bibb        37      30      46       3    6690       4
+    ## 6 01009 alabama, b… alab… blount      33      27      39       1    4440       1
+    ## # … with 25 more variables: county.deaths <dbl>, yppl.rate <dbl>,
+    ## #   yppl.rate.95ci.low <dbl>, yppl.rate.95ci.high <dbl>, yppl.rate.quart <dbl>,
+    ## #   perc.smoke <dbl>, perc.smoke.95ci.low <dbl>, perc.smoke.95ci.high <dbl>,
+    ## #   perc.smoke.quart <dbl>, perc.inactive <dbl>, perc.inactive.95ci.low <dbl>,
+    ## #   perc.inactive.95ci.high <dbl>, perc.inactive.quart <dbl>,
+    ## #   count.highschl <dbl>, county.pop <dbl>, perc.highschl <dbl>,
+    ## #   perc.highscl.95ci.low <dbl>, perc.highscl.95ci.high <dbl>, …
+
+``` r
+county_health_full <- left_join(county_map,county_health_data,by="id")
+county_health_full %>%
+  head(6)
+```
+
+    ##        long      lat group order               id  region subregion  fips
+    ## 1 -86.50517 32.34920     1     1 alabama, autauga alabama   autauga 01001
+    ## 2 -86.53382 32.35493     1     2 alabama, autauga alabama   autauga 01001
+    ## 3 -86.54527 32.36639     1     3 alabama, autauga alabama   autauga 01001
+    ## 4 -86.55673 32.37785     1     4 alabama, autauga alabama   autauga 01001
+    ## 5 -86.57966 32.38357     1     5 alabama, autauga alabama   autauga 01001
+    ## 6 -86.59111 32.37785     1     6 alabama, autauga alabama   autauga 01001
+    ##     state  county perc.obese perc.obese.95ci.low perc.obese.95ci.high
+    ## 1 alabama autauga         33                  27                   39
+    ## 2 alabama autauga         33                  27                   39
+    ## 3 alabama autauga         33                  27                   39
+    ## 4 alabama autauga         33                  27                   39
+    ## 5 alabama autauga         33                  27                   39
+    ## 6 alabama autauga         33                  27                   39
+    ##   perc.obese.quart prev.hosp.rate prev.hosp.rate.quart county.deaths yppl.rate
+    ## 1                1           6650                    4           787      7830
+    ## 2                1           6650                    4           787      7830
+    ## 3                1           6650                    4           787      7830
+    ## 4                1           6650                    4           787      7830
+    ## 5                1           6650                    4           787      7830
+    ## 6                1           6650                    4           787      7830
+    ##   yppl.rate.95ci.low yppl.rate.95ci.high yppl.rate.quart perc.smoke
+    ## 1               6998                8662               1         20
+    ## 2               6998                8662               1         20
+    ## 3               6998                8662               1         20
+    ## 4               6998                8662               1         20
+    ## 5               6998                8662               1         20
+    ## 6               6998                8662               1         20
+    ##   perc.smoke.95ci.low perc.smoke.95ci.high perc.smoke.quart perc.inactive
+    ## 1                  17                   23                1            31
+    ## 2                  17                   23                1            31
+    ## 3                  17                   23                1            31
+    ## 4                  17                   23                1            31
+    ## 5                  17                   23                1            31
+    ## 6                  17                   23                1            31
+    ##   perc.inactive.95ci.low perc.inactive.95ci.high perc.inactive.quart
+    ## 1                     25                      37                   2
+    ## 2                     25                      37                   2
+    ## 3                     25                      37                   2
+    ## 4                     25                      37                   2
+    ## 5                     25                      37                   2
+    ## 6                     25                      37                   2
+    ##   count.highschl county.pop perc.highschl perc.highscl.95ci.low
+    ## 1          33076      37367            89                    87
+    ## 2          33076      37367            89                    87
+    ## 3          33076      37367            89                    87
+    ## 4          33076      37367            89                    87
+    ## 5          33076      37367            89                    87
+    ## 6          33076      37367            89                    87
+    ##   perc.highscl.95ci.high perc.highscl.quart perc.childpov
+    ## 1                     90                  1            16
+    ## 2                     90                  1            16
+    ## 3                     90                  1            16
+    ## 4                     90                  1            16
+    ## 5                     90                  1            16
+    ## 6                     90                  1            16
+    ##   perc.childpov.95ci.low perc.childpov.95ci.high perc.childpov.quart
+    ## 1                     11                      21                   1
+    ## 2                     11                      21                   1
+    ## 3                     11                      21                   1
+    ## 4                     11                      21                   1
+    ## 5                     11                      21                   1
+    ## 6                     11                      21                   1
+    ##   income.ratio income.ratio.quart
+    ## 1          5.1                  2
+    ## 2          5.1                  2
+    ## 3          5.1                  2
+    ## 4          5.1                  2
+    ## 5          5.1                  2
+    ## 6          5.1                  2
+
+``` r
+ggplot(county_health_full,aes(x=long,y=lat,fill=perc.obese,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
+  labs(fill="Percent of Obese Adults, 2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+ggplot(county_health_full,aes(x=long,y=lat,fill=perc.obese.quart,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
+  labs(fill="Percent of Obese Adults, 2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
+
 Next steps: need to add county health and county water data. Now looking
 to pivot so that one project focuses on how county health aligns with
 state retail patterns of red and processed meat and the other looks at
