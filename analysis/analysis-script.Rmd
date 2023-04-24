@@ -384,5 +384,44 @@ ggplot(county_water_full,aes(x=long,y=lat,fill=acres,group=group)) +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
+prepping health data for spatial join 
+
+```{r}
+county_health_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_health_data.csv") %>%
+  mutate(state=tolower(state),county=tolower(county)) %>%
+  unite(id,c("state","county"),sep=", ",remove=FALSE) 
+county_health_data %>%
+  head(6)
+```
+
+```{r}
+county_health_full <- left_join(county_map,county_health_data,by="id")
+county_health_full %>%
+  head(6)
+```
+
+```{r}
+ggplot(county_health_full,aes(x=long,y=lat,fill=perc.obese,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
+  labs(fill="Percent of Obese Adults, 2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+```{r}
+ggplot(county_health_full,aes(x=long,y=lat,fill=perc.obese.quart,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Reds",trans="reverse",na.value="white") +
+  labs(fill="Percent of Obese Adults, 2021") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+
 Next steps: need to add county health and county water data. Now looking to pivot so that one project focuses on how county health aligns with state retail patterns of red and processed meat and the other looks at how agricultural subsidy payments align with water usage for irrigation (and water scarcity), both at the county level 
   
