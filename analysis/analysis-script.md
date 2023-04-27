@@ -894,6 +894,98 @@ ggplot(county_health_full,aes(x=long,y=lat,fill=yppl.rate,group=group)) +
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-37-1.png)<!-- -->
 
+### Adding in USDA livestock data
+
+``` r
+county_livestock_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_livestock_data.csv") %>%
+  select(FIPSTEXT,y17_M110_valueNumeric,y17_M111_valueNumeric,y17_M113_valueNumeric,y17_M114_valueNumeric) %>%
+  rename(fips=FIPSTEXT,chg_tot_cattle=y17_M110_valueNumeric,avg_num_cattle=y17_M111_valueNumeric,chg_milkcow=y17_M113_valueNumeric,chg_beefcow=y17_M114_valueNumeric)
+```
+
+    ## Rows: 3080 Columns: 41
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (27): FIPSTEXT, y17_M110_valueText, y17_M110_classRange, y17_M111_valueT...
+    ## dbl (14): FIPS, y17_M110_valueNumeric, y17_M111_valueNumeric, y17_M112_value...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+county_livestock_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 5
+    ##   fips  chg_tot_cattle avg_num_cattle chg_milkcow chg_beefcow
+    ##   <chr>          <dbl>          <dbl>       <dbl>       <dbl>
+    ## 1 00000           1.18             10        44.1        1.03
+    ## 2 01001           0.2              15        52.7       -0.99
+    ## 3 01003           0.26             13        50.2       -0.58
+    ## 4 01005           0.55             15        58.1       NA   
+    ## 5 01007           0.78             14        54.5       NA   
+    ## 6 01009           0.67             31        47.4       NA
+
+### Spatial Joining USDA livestock data with USGS water use and map data
+
+``` r
+county_livestock_water_full <- left_join(county_livestock_data,county_water_full, by='fips')
+county_livestock_water_full %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 17
+    ##   fips  chg_tot_c…¹ avg_n…² chg_m…³ chg_b…⁴  long   lat group order id    region
+    ##   <chr>       <dbl>   <dbl>   <dbl>   <dbl> <dbl> <dbl> <dbl> <int> <chr> <chr> 
+    ## 1 00000        1.18      10    44.1    1.03  NA    NA      NA    NA <NA>  <NA>  
+    ## 2 01001        0.2       15    52.7   -0.99 -86.5  32.3     1     1 alab… alaba…
+    ## 3 01001        0.2       15    52.7   -0.99 -86.5  32.4     1     2 alab… alaba…
+    ## 4 01001        0.2       15    52.7   -0.99 -86.5  32.4     1     3 alab… alaba…
+    ## 5 01001        0.2       15    52.7   -0.99 -86.6  32.4     1     4 alab… alaba…
+    ## 6 01001        0.2       15    52.7   -0.99 -86.6  32.4     1     5 alab… alaba…
+    ## # … with 6 more variables: subregion <chr>, state <chr>, county <chr>,
+    ## #   acres <dbl>, groundwater <dbl>, freshwater <dbl>, and abbreviated variable
+    ## #   names ¹​chg_tot_cattle, ²​avg_num_cattle, ³​chg_milkcow, ⁴​chg_beefcow
+
+``` r
+ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=avg_num_cattle,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Oranges",trans="reverse",na.value="white") +
+  labs(fill="Average Number of Cattle and Calves per 100 Acres, 2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+
+``` r
+ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=chg_milkcow,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Oranges",trans="reverse",na.value="white") +
+  labs(fill="Change in Milk Cow Inventory, 2012-2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+
+``` r
+ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=chg_beefcow,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Oranges",trans="reverse",na.value="white") +
+  labs(fill="Change in Beef Cow Inventory, 2012-2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
+
 Next steps: need to add county health and county water data. Now looking
 to pivot so that one project focuses on how county health aligns with
 state retail patterns of red and processed meat and the other looks at

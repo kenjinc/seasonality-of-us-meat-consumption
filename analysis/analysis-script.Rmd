@@ -444,6 +444,59 @@ ggplot(county_health_full,aes(x=long,y=lat,fill=yppl.rate,group=group)) +
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
+### Adding in USDA livestock data 
+
+```{r}
+county_livestock_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_livestock_data.csv") %>%
+  select(FIPSTEXT,y17_M110_valueNumeric,y17_M111_valueNumeric,y17_M113_valueNumeric,y17_M114_valueNumeric) %>%
+  rename(fips=FIPSTEXT,chg_tot_cattle=y17_M110_valueNumeric,avg_num_cattle=y17_M111_valueNumeric,chg_milkcow=y17_M113_valueNumeric,chg_beefcow=y17_M114_valueNumeric)
+county_livestock_data %>%
+  head(6)
+```
+
+
+### Spatial Joining USDA livestock data with USGS water use and map data 
+
+```{r}
+county_livestock_water_full <- left_join(county_livestock_data,county_water_full, by='fips')
+county_livestock_water_full %>%
+  head(6)
+```
+
+```{r}
+ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=avg_num_cattle,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Oranges",trans="reverse",na.value="white") +
+  labs(fill="Average Number of Cattle and Calves per 100 Acres, 2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+```{r}
+ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=chg_milkcow,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Oranges",trans="reverse",na.value="white") +
+  labs(fill="Change in Milk Cow Inventory, 2012-2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+
+```{r}
+ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=chg_beefcow,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Oranges",trans="reverse",na.value="white") +
+  labs(fill="Change in Beef Cow Inventory, 2012-2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
 
 Next steps: need to add county health and county water data. Now looking to pivot so that one project focuses on how county health aligns with state retail patterns of red and processed meat and the other looks at how agricultural subsidy payments align with water usage for irrigation (and water scarcity), both at the county level 
   
