@@ -986,6 +986,77 @@ ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=chg_beefcow,group=group
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->
 
+### Adding in USDA Economics Dataset
+
+``` r
+county_economics_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_economics_data.csv") %>%
+  select(FIPSTEXT,y17_M044_valueNumeric) %>%
+  rename(fips=FIPSTEXT,feedexp_prop=y17_M044_valueNumeric)
+```
+
+    ## Rows: 3080 Columns: 152
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (97): FIPSTEXT, y17_M011_classRange, y17_M012_classRange, y17_M013_class...
+    ## dbl (55): FIPS, y17_M011_valueText, y17_M011_valueNumeric, y17_M012_valueTex...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+county_economics_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 2
+    ##   fips  feedexp_prop
+    ##   <chr>        <dbl>
+    ## 1 00000        19.2 
+    ## 2 01001        12.8 
+    ## 3 01003         7.94
+    ## 4 01005        38.4 
+    ## 5 01007        17.7 
+    ## 6 01009        56.6
+
+### Spatial Joining USDA econnomics data with USDA livestock and USGS water use and map data
+
+``` r
+county_economics_livestock_water_full <- left_join(county_economics_data,county_livestock_water_full, by='fips')
+county_economics_livestock_water_full %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 18
+    ##   fips  feedexp_…¹ chg_t…² avg_n…³ chg_m…⁴ chg_b…⁵  long   lat group order id   
+    ##   <chr>      <dbl>   <dbl>   <dbl>   <dbl>   <dbl> <dbl> <dbl> <dbl> <int> <chr>
+    ## 1 00000       19.2    1.18      10    44.1    1.03  NA    NA      NA    NA <NA> 
+    ## 2 01001       12.8    0.2       15    52.7   -0.99 -86.5  32.3     1     1 alab…
+    ## 3 01001       12.8    0.2       15    52.7   -0.99 -86.5  32.4     1     2 alab…
+    ## 4 01001       12.8    0.2       15    52.7   -0.99 -86.5  32.4     1     3 alab…
+    ## 5 01001       12.8    0.2       15    52.7   -0.99 -86.6  32.4     1     4 alab…
+    ## 6 01001       12.8    0.2       15    52.7   -0.99 -86.6  32.4     1     5 alab…
+    ## # … with 7 more variables: region <chr>, subregion <chr>, state <chr>,
+    ## #   county <chr>, acres <dbl>, groundwater <dbl>, freshwater <dbl>, and
+    ## #   abbreviated variable names ¹​feedexp_prop, ²​chg_tot_cattle, ³​avg_num_cattle,
+    ## #   ⁴​chg_milkcow, ⁵​chg_beefcow
+
+``` r
+ggplot(county_economics_livestock_water_full,aes(x=long,y=lat,fill=feedexp_prop,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Purples",trans="reverse",na.value="white") +
+  labs(fill="Proportion of 2017 expenses spent on livestock feed, 2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
+
+Probably also worth building in variable (y17_M044), which tabulates
+expenses for feed purchase as a percent of total farm production
+expenses in 2017
+
 Next steps: need to add county health and county water data. Now looking
 to pivot so that one project focuses on how county health aligns with
 state retail patterns of red and processed meat and the other looks at

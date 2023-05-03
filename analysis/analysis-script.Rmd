@@ -497,6 +497,37 @@ ggplot(county_livestock_water_full,aes(x=long,y=lat,fill=chg_beefcow,group=group
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
+### Adding in USDA Economics Dataset
+
+```{r}
+county_economics_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/county_economics_data.csv") %>%
+  select(FIPSTEXT,y17_M044_valueNumeric) %>%
+  rename(fips=FIPSTEXT,feedexp_prop=y17_M044_valueNumeric)
+county_economics_data %>%
+  head(6)
+```
+
+### Spatial Joining USDA econnomics data with USDA livestock and USGS water use and map data 
+
+```{r}
+county_economics_livestock_water_full <- left_join(county_economics_data,county_livestock_water_full, by='fips')
+county_economics_livestock_water_full %>%
+  head(6)
+```
+
+```{r}
+ggplot(county_economics_livestock_water_full,aes(x=long,y=lat,fill=feedexp_prop,group=group)) + 
+  geom_polygon(color="white",linewidth=0.05) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_distiller(palette="Purples",trans="reverse",na.value="white") +
+  labs(fill="Proportion of 2017 expenses spent on livestock feed, 2017") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+
+Probably also worth building in variable (y17_M044), which tabulates expenses for feed purchase as a percent of total farm production expenses in 2017
 
 Next steps: need to add county health and county water data. Now looking to pivot so that one project focuses on how county health aligns with state retail patterns of red and processed meat and the other looks at how agricultural subsidy payments align with water usage for irrigation (and water scarcity), both at the county level 
   
