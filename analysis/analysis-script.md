@@ -31,6 +31,10 @@ library(scales)
     ## 
     ##     col_factor
 
+``` r
+library(RColorBrewer)
+```
+
 library(usmap) library(maps) library(socviz)
 
 ## Data Loading
@@ -1053,12 +1057,174 @@ ggplot(county_economics_livestock_water_full,aes(x=long,y=lat,fill=feedexp_prop,
 
 ![](analysis-script_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
 
-Probably also worth building in variable (y17_M044), which tabulates
-expenses for feed purchase as a percent of total farm production
-expenses in 2017
+### loading in GADM level 2 US map data in prep for spatial join with WRI water stress data
+
+``` r
+gadm_map_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/gadm_map_data.csv") %>%
+  select(COUNTRY,NAME_1,NAME_2,GID_2,GID_1,GID_0) %>%
+  rename(country=COUNTRY,name_1=NAME_1,name_2=NAME_2,gid_2=GID_2,gid_1=GID_1,gid_0=GID_0)
+```
+
+    ## Rows: 3148 Columns: 13
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (10): GID_2, GID_0, COUNTRY, GID_1, NAME_1, NAME_2, VARNAME_2, TYPE_2, E...
+    ## lgl  (3): NL_NAME_1, NL_NAME_2, CC_2
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+gadm_map_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 6
+    ##   country       name_1  name_2  gid_2     gid_1   gid_0
+    ##   <chr>         <chr>   <chr>   <chr>     <chr>   <chr>
+    ## 1 United States Alabama Autauga USA.1.1_1 USA.1_1 USA  
+    ## 2 United States Alabama Baldwin USA.1.2_1 USA.1_1 USA  
+    ## 3 United States Alabama Barbour USA.1.3_1 USA.1_1 USA  
+    ## 4 United States Alabama Bibb    USA.1.4_1 USA.1_1 USA  
+    ## 5 United States Alabama Blount  USA.1.5_1 USA.1_1 USA  
+    ## 6 United States Alabama Bullock USA.1.6_1 USA.1_1 USA
+
+``` r
+us_wsi_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/us_wsi_data.csv") %>%
+  select(string_id,aq30_id,pfaf_id,gid_1,aqid,gid_0,name_0,name_1,area_km2,bws_raw,bws_score,bws_cat,bws_label)
+```
+
+    ## Rows: 3433 Columns: 260
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (58): string_id, gid_1, gid_0, name_0, name_1, bws_label, bwd_label, ia...
+    ## dbl (202): aq30_id, pfaf_id, aqid, area_km2, bws_raw, bws_score, bws_cat, bw...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+us_wsi_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 13
+    ##   string_id      aq30_id pfaf_id gid_1  aqid gid_0 name_0 name_1 area_…¹ bws_raw
+    ##   <chr>            <dbl>   <dbl> <chr> <dbl> <chr> <chr>  <chr>    <dbl>   <dbl>
+    ## 1 355000-USA.2_…   29004  355000 USA.…  1047 USA   Unite… Alaska   782.    0.169
+    ## 2 355000-USA.2_…   29005  355000 USA.…  1064 USA   Unite… Alaska   206.    0.169
+    ## 3 355000-USA.2_…   29006  355000 USA.…  1079 USA   Unite… Alaska   255.    0.169
+    ## 4 355000-USA.2_…   29007  355000 USA.…  1083 USA   Unite… Alaska   216.    0.169
+    ## 5 355000-USA.2_…   29008  355000 USA.…  1085 USA   Unite… Alaska    60.9   0.169
+    ## 6 355000-USA.2_…   29009  355000 USA.…  1092 USA   Unite… Alaska   271.    0.169
+    ## # … with 3 more variables: bws_score <dbl>, bws_cat <dbl>, bws_label <chr>, and
+    ## #   abbreviated variable name ¹​area_km2
+
+``` r
+gadm_wsi_full <- left_join(gadm_map_data,us_wsi_data, by='gid_1') %>%
+  mutate(name_1.x=tolower(name_1.x),name_2=tolower(name_2)) %>%
+  unite(id,c("name_1.x","name_2"),sep=", ",remove=FALSE)
+gadm_wsi_full %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 19
+    ##   country id    name_…¹ name_2 gid_2 gid_1 gid_0.x strin…² aq30_id pfaf_id  aqid
+    ##   <chr>   <chr> <chr>   <chr>  <chr> <chr> <chr>   <chr>     <dbl>   <dbl> <dbl>
+    ## 1 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## 2 United… alab… alabama autau… USA.… USA.… USA     732605…   54007  732605  1400
+    ## 3 United… alab… alabama autau… USA.… USA.… USA     732605…   54008  732605  1664
+    ## 4 United… alab… alabama autau… USA.… USA.… USA     732606…   54012  732606  1400
+    ## 5 United… alab… alabama autau… USA.… USA.… USA     732607…   54014  732607  1400
+    ## 6 United… alab… alabama autau… USA.… USA.… USA     732607…   54015  732607  1414
+    ## # … with 8 more variables: gid_0.y <chr>, name_0 <chr>, name_1.y <chr>,
+    ## #   area_km2 <dbl>, bws_raw <dbl>, bws_score <dbl>, bws_cat <dbl>,
+    ## #   bws_label <chr>, and abbreviated variable names ¹​name_1.x, ²​string_id
+
+``` r
+county_stress_economics_livestock_water_full <- left_join(gadm_wsi_full,county_economics_livestock_water_full, by='id') %>%
+  filter(bws_label!=-9999) 
+county_stress_economics_livestock_water_full %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 36
+    ##   country id    name_…¹ name_2 gid_2 gid_1 gid_0.x strin…² aq30_id pfaf_id  aqid
+    ##   <chr>   <chr> <chr>   <chr>  <chr> <chr> <chr>   <chr>     <dbl>   <dbl> <dbl>
+    ## 1 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## 2 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## 3 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## 4 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## 5 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## 6 United… alab… alabama autau… USA.… USA.… USA     732602…   53997  732602  1664
+    ## # … with 25 more variables: gid_0.y <chr>, name_0 <chr>, name_1.y <chr>,
+    ## #   area_km2 <dbl>, bws_raw <dbl>, bws_score <dbl>, bws_cat <dbl>,
+    ## #   bws_label <chr>, fips <chr>, feedexp_prop <dbl>, chg_tot_cattle <dbl>,
+    ## #   avg_num_cattle <dbl>, chg_milkcow <dbl>, chg_beefcow <dbl>, long <dbl>,
+    ## #   lat <dbl>, group <dbl>, order <int>, region <chr>, subregion <chr>,
+    ## #   state <chr>, county <chr>, acres <dbl>, groundwater <dbl>,
+    ## #   freshwater <dbl>, and abbreviated variable names ¹​name_1.x, ²​string_id
+
+``` r
+ggplot(county_stress_economics_livestock_water_full,aes(x=long,y=lat,fill=bws_label,group=group)) + 
+  geom_polygon(color="white",linewidth=0.01) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_manual(values=c('snow','honeydew1','honeydew2','honeydew3','honeydew4','slategrey'),na.value="white",breaks=c('Low (<10%)','Low - Medium (10-20%)','Medium - High (20-40%)','High (40-80%)','Extremely High (>80%)','Arid and Low Water Use')) +
+  labs(fill="Water Stress Level") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+![](analysis-script_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
+
+group_by(id,long,lat,group) %\>%
+summarize(mean_bws_score=mean(bws_score,na.rm=TRUE)) group_by(id) %\>%
+summarize(mean_bws_score=mean(bws_score,na.rm=TRUE)) %\>%
 
 Next steps: need to add county health and county water data. Now looking
 to pivot so that one project focuses on how county health aligns with
 state retail patterns of red and processed meat and the other looks at
 how agricultural subsidy payments align with water usage for irrigation
 (and water scarcity), both at the county level
+
+``` r
+library(spdep)
+```
+
+    ## Loading required package: spData
+
+    ## To access larger datasets in this package, install the spDataLarge
+    ## package with: `install.packages('spDataLarge',
+    ## repos='https://nowosad.github.io/drat/', type='source')`
+
+    ## Loading required package: sf
+
+    ## Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE
+
+``` r
+sorting_data <- county_stress_economics_livestock_water_full %>%
+  select(id,fips,bws_raw,bws_score,bws_cat,bws_label,feedexp_prop,long,lat,group,order,state,county)
+sorting_data %>%
+  head(6)
+```
+
+    ## # A tibble: 6 × 13
+    ##   id       fips  bws_raw bws_s…¹ bws_cat bws_l…² feede…³  long   lat group order
+    ##   <chr>    <chr>   <dbl>   <dbl>   <dbl> <chr>     <dbl> <dbl> <dbl> <dbl> <int>
+    ## 1 alabama… 01001 0.00561       0       0 Low (<…    12.8 -86.5  32.3     1     1
+    ## 2 alabama… 01001 0.00561       0       0 Low (<…    12.8 -86.5  32.4     1     2
+    ## 3 alabama… 01001 0.00561       0       0 Low (<…    12.8 -86.5  32.4     1     3
+    ## 4 alabama… 01001 0.00561       0       0 Low (<…    12.8 -86.6  32.4     1     4
+    ## 5 alabama… 01001 0.00561       0       0 Low (<…    12.8 -86.6  32.4     1     5
+    ## 6 alabama… 01001 0.00561       0       0 Low (<…    12.8 -86.6  32.4     1     6
+    ## # … with 2 more variables: state <chr>, county <chr>, and abbreviated variable
+    ## #   names ¹​bws_score, ²​bws_label, ³​feedexp_prop
+
+resI \<-
+localmoran(sorting_data\$feedexp_prop,nb2listw(paper.nb),na.action=na.omit)
+
+gadm_wsi_full \<- left_join(gadm_map_data,us_wsi_data, by=‘gid_1’) %\>%
+mutate(name_1.x=tolower(name_1.x),name_2=tolower(name_2)) %\>%
+unite(id,c(“name_1.x”,“name_2”),sep=“,”,remove=FALSE) gadm_wsi_full %\>%
+head(6)

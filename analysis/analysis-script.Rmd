@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(scales)
+library(RColorBrewer)
 ```
 
 library(usmap)
@@ -526,8 +527,73 @@ ggplot(county_economics_livestock_water_full,aes(x=long,y=lat,fill=feedexp_prop,
   theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
 ```
 
+### loading in GADM level 2 US map data in prep for spatial join with WRI water stress data 
 
-Probably also worth building in variable (y17_M044), which tabulates expenses for feed purchase as a percent of total farm production expenses in 2017
+```{r}
+gadm_map_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/gadm_map_data.csv") %>%
+  select(COUNTRY,NAME_1,NAME_2,GID_2,GID_1,GID_0) %>%
+  rename(country=COUNTRY,name_1=NAME_1,name_2=NAME_2,gid_2=GID_2,gid_1=GID_1,gid_0=GID_0)
+gadm_map_data %>%
+  head(6)
+```
+
+```{r}
+us_wsi_data <- read_csv("/Users/kenjinchang/github/seasonality-of-us-meat-consumption/data/us_wsi_data.csv") %>%
+  select(string_id,aq30_id,pfaf_id,gid_1,aqid,gid_0,name_0,name_1,area_km2,bws_raw,bws_score,bws_cat,bws_label)
+us_wsi_data %>%
+  head(6)
+```
+
+```{r}
+gadm_wsi_full <- left_join(gadm_map_data,us_wsi_data, by='gid_1') %>%
+  mutate(name_1.x=tolower(name_1.x),name_2=tolower(name_2)) %>%
+  unite(id,c("name_1.x","name_2"),sep=", ",remove=FALSE)
+gadm_wsi_full %>%
+  head(6)
+```
+
+```{r}
+county_stress_economics_livestock_water_full <- left_join(gadm_wsi_full,county_economics_livestock_water_full, by='id') %>%
+  filter(bws_label!=-9999) 
+county_stress_economics_livestock_water_full %>%
+  head(6)
+```
+
+```{r}
+ggplot(county_stress_economics_livestock_water_full,aes(x=long,y=lat,fill=bws_label,group=group)) + 
+  geom_polygon(color="white",linewidth=0.01) +
+  coord_map(projection="albers",lat0=39,lat1=45) + 
+  scale_fill_manual(values=c('snow','honeydew1','honeydew2','honeydew3','honeydew4','slategrey'),na.value="white",breaks=c('Low (<10%)','Low - Medium (10-20%)','Medium - High (20-40%)','High (40-80%)','Extremely High (>80%)','Arid and Low Water Use')) +
+  labs(fill="Water Stress Level") +
+  xlab("") + 
+  ylab("") +
+  theme(legend.position="bottom",panel.grid=element_blank(),panel.background=element_blank(),axis.text=element_blank(),axis.ticks=element_blank())
+```
+
+
+group_by(id,long,lat,group) %>%
+  summarize(mean_bws_score=mean(bws_score,na.rm=TRUE)) 
+  group_by(id) %>%
+  summarize(mean_bws_score=mean(bws_score,na.rm=TRUE)) %>%
 
 Next steps: need to add county health and county water data. Now looking to pivot so that one project focuses on how county health aligns with state retail patterns of red and processed meat and the other looks at how agricultural subsidy payments align with water usage for irrigation (and water scarcity), both at the county level 
-  
+
+```{r}
+library(spdep)
+```
+
+```{r}
+sorting_data <- county_stress_economics_livestock_water_full %>%
+  select(id,fips,bws_raw,bws_score,bws_cat,bws_label,feedexp_prop,long,lat,group,order,state,county)
+sorting_data %>%
+  head(6)
+```
+
+resI <- localmoran(sorting_data$feedexp_prop,nb2listw(paper.nb),na.action=na.omit)
+
+
+gadm_wsi_full <- left_join(gadm_map_data,us_wsi_data, by='gid_1') %>%
+  mutate(name_1.x=tolower(name_1.x),name_2=tolower(name_2)) %>%
+  unite(id,c("name_1.x","name_2"),sep=", ",remove=FALSE)
+gadm_wsi_full %>%
+  head(6)
